@@ -18,12 +18,13 @@ import {
   getCurrentUser
 } from "../../firebase/firebase.utils";
 
-export function* getSnapshotFromUserAuth(userAuth, additionalData) {
+export function* getSnapshotFromUserAuth(userAuth, additionalData, cartItems) {
   try {
     const userRef = yield call(
       createUserProfileDocument,
       userAuth,
-      additionalData
+      additionalData,
+      cartItems
     );
     const userSnapshot = yield userRef.get();
     yield put(signInSuccess({ id: userSnapshot.id, ...userSnapshot.data() }));
@@ -32,10 +33,10 @@ export function* getSnapshotFromUserAuth(userAuth, additionalData) {
   }
 }
 
-export function* signInWithGoogle() {
+export function* signInWithGoogle({ payload: { cartItems } }) {
   try {
     const { user } = yield auth.signInWithPopup(googleProvider);
-    yield getSnapshotFromUserAuth(user);
+    yield getSnapshotFromUserAuth(user, null, cartItems);
   } catch (error) {
     yield put(signInFailure(error));
   }
@@ -69,17 +70,23 @@ export function* signOut() {
   }
 }
 
-export function* signUp({ payload: { email, password, displayName } }) {
+export function* signUp({
+  payload: { email, password, displayName, cartItems }
+}) {
   try {
     const { user } = yield auth.createUserWithEmailAndPassword(email, password);
-    yield put(signUpSuccess({ user, additionalData: { displayName } }));
+    yield put(
+      signUpSuccess({ user, additionalData: { displayName }, cartItems })
+    );
   } catch (error) {
     yield put(signUpFailure(error));
   }
 }
 
-export function* signInAfterSignUp({ payload: { user, additionalData } }) {
-  yield getSnapshotFromUserAuth(user, additionalData);
+export function* signInAfterSignUp({
+  payload: { user, additionalData, cartItems }
+}) {
+  yield getSnapshotFromUserAuth(user, additionalData, cartItems);
 }
 
 /*

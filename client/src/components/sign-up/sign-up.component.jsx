@@ -1,13 +1,16 @@
 import React, { useState } from "react";
 import { connect } from "react-redux";
+import { createStructuredSelector } from "reselect";
+
 import "./sign-up.style.scss";
 
 import FormInput from "../form-input/form-input.component";
 import CustomButton from "../custom-button/custom-button.component";
 
 import { signUpStart } from "../../redux/user/user.actions";
+import { selectCartItems } from "../../redux/cart/cart.selectors";
 
-const SignUp = ({ signUpStart }) => {
+const SignUp = ({ signUpStart, cartItems }) => {
   const [userCredentials, setUserCredentials] = useState({
     displayName: "",
     email: "",
@@ -25,7 +28,7 @@ const SignUp = ({ signUpStart }) => {
       return;
     }
 
-    signUpStart({ displayName, email, password });
+    signUpStart({ displayName, email, password, cartItems });
   };
 
   const handleChange = e => {
@@ -77,11 +80,15 @@ const SignUp = ({ signUpStart }) => {
   );
 };
 
+const mapStateToProps = createStructuredSelector({
+  cartItems: selectCartItems
+});
+
 const mapDispatchToProps = dispatch => ({
   signUpStart: userCredentials => dispatch(signUpStart(userCredentials))
 });
 
 export default connect(
-  null,
+  mapStateToProps,
   mapDispatchToProps
 )(SignUp);

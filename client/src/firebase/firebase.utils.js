@@ -15,7 +15,11 @@ const config = {
 
 firebase.initializeApp(config);
 
-export const createUserProfileDocument = async (userAuth, additionalData) => {
+export const createUserProfileDocument = async (
+  userAuth,
+  additionalData,
+  cartItems
+) => {
   if (!userAuth) return;
 
   const userRef = firestore.doc(`/users/${userAuth.uid}`);
@@ -33,12 +37,27 @@ export const createUserProfileDocument = async (userAuth, additionalData) => {
         createdAt,
         ...additionalData
       });
+      let cart = cartItems || [];
+      await transferCartToNewUser(userAuth.uid, cart);
     } catch (err) {
       console.log("error creating user", err.message);
     }
   }
 
   return userRef;
+};
+
+export const transferCartToNewUser = async (userId, cartItems) => {
+  const cartsRef = firestore.collection("carts").where("userId", "==", userId);
+  const snapShot = await cartsRef.get();
+
+  if (snapShot.empty) {
+    const cartDocRef = firestore.collection("carts").doc();
+    await cartDocRef.set({ userId, cartItems: cartItems });
+    return;
+  } else {
+    return;
+  }
 };
 
 export const getUserCartRef = async userId => {
